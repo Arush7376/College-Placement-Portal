@@ -1,0 +1,37 @@
+{
+  "performanceData": {
+    "subjectAccuracy": {
+      "DSA": 78,
+      "Aptitude": 92,
+      "DBMS": 85,
+      "OS": 75,
+      "CN": 80
+    },
+    "interviewScores": [
+      { "date": "2024-01-01", "score": 70 },
+      { "date": "2024-01-08", "score": 75 },
+      { "date": "2024-01-15", "score": 85 }
+    ],
+    "weakAreas": [
+      "Dynamic Programming",
+      "System Design",
+      "Database Normalization"
+    ],
+    "studyPlan": {
+      "week1": [
+        { "day": "Monday", "topic": "Arrays & Strings", "completed": true },
+        { "day": "Tuesday", "topic": "Linked Lists", "completed": true },
+        { "day": "Wednesday", "topic": "Stacks & Queues", "completed": false }
+      ],
+      "week2": [
+        { "day": "Monday", "topic": "Trees", "completed": false },
+        { "day": "Tuesday", "topic": "Graphs", "completed": false }
+      ]
+    }
+  },
+  "adminStats": {
+    "totalStudents": 150,
+    "averageReadiness": 76,
+    "weakSubjects": ["Dynamic Programming", "System Design", "DBMS"]
+  }
+}

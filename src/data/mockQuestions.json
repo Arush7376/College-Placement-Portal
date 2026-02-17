@@ -1,0 +1,55 @@
+{
+  "dsaQuestions": [
+    {
+      "id": 1,
+      "question": "What is the time complexity of binary search?",
+      "options": ["O(n)", "O(log n)", "O(n²)", "O(1)"],
+      "correctAnswer": 1,
+      "difficulty": "Easy"
+    },
+    {
+      "id": 2,
+      "question": "Which data structure uses LIFO principle?",
+      "options": ["Queue", "Stack", "Array", "Tree"],
+      "correctAnswer": 1,
+      "difficulty": "Easy"
+    }
+  ],
+  "aptitudeQuestions": [
+    {
+      "id": 1,
+      "question": "If 5x + 3 = 18, what is x?",
+      "options": ["2", "3", "4", "5"],
+      "correctAnswer": 1,
+      "difficulty": "Easy"
+    }
+  ],
+  "codingQuestions": [
+    {
+      "id": 1,
+      "title": "Two Sum",
+      "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+      "difficulty": "Easy",
+      "examples": [
+        {
+          "input": "nums = [2,7,11,15], target = 9",
+          "output": "[0,1]"
+        }
+      ]
+    }
+  ],
+  "interviewQuestions": [
+    {
+      "id": 1,
+      "role": "Frontend Developer",
+      "question": "Tell me about yourself and your experience with React.",
+      "type": "HR"
+    },
+    {
+      "id": 2,
+      "role": "Frontend Developer", 
+      "question": "Explain the difference between let, const, and var in JavaScript.",
+      "type": "Technical"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@college.edu",
+      "readinessScore": 85,
+      "dsaProgress": 78,
+      "aptitudeProgress": 92,
+      "coreSubjectsProgress": 85,
+      "recentTests": [
+        { "subject": "DSA", "score": 85, "date": "2024-01-15" },
+        { "subject": "Aptitude", "score": 90, "date": "2024-01-14" }
+      ],
+      "rank": 1,
+      "percentile": 95
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@college.edu",
+      "readinessScore": 78,
+      "dsaProgress": 85,
+      "aptitudeProgress": 75,
+      "coreSubjectsProgress": 80,
+      "recentTests": [
+        { "subject": "DBMS", "score": 78, "date": "2024-01-13" }
+      ],
+      "rank": 2,
+      "percentile": 88
+    }
+  ],
+  "currentUser": {
+    "id": 1,
+    "name": "John Doe",
+    "role": "student"
+  }
+}
