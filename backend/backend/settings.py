@@ -134,3 +134,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 
+GEMINI_API_KEY = "AIzaSyCgulhVs9T3NWIvvfSxEalnhNrLFKVXLJg"
+

@@ -1,12 +1,48 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import Sidebar from '../components/Sidebar';
 import StatCard from '../components/StatCard';
 import mockStudents from '../data/mockStudents.json';
+import { authAPI } from '../services/api';
 
 const StudentDashboard = () => {
-  const currentUser = mockStudents.students[0];
+  // Get user from local storage or fallback to mock
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const [currentUser, setCurrentUser] = useState({
+    name: storedUser?.name || storedUser?.email?.split('@')[0] || 'Student',
+    readinessScore: 0,
+    dsaProgress: 0,
+    aptitudeProgress: 0,
+    coreSubjectsProgress: 0,
+    projectProgress: 0, // New field
+    recentTests: [] // Initialize empty or mock if needed for UI structure, but better empty
+  });
   const { isDark, cardBg, text, textSecondary, hover } = useTheme();
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const response = await authAPI.getStudentProgress();
+        const progress = response.data;
+        setCurrentUser(prev => ({
+          ...prev,
+          dsaProgress: progress.dsa_progress || 0,
+          aptitudeProgress: progress.aptitude_progress || 0,
+          coreSubjectsProgress: progress.core_subjects_progress || 0,
+          projectProgress: progress.project_progress || 0,
+          readinessScore: progress.readiness_score || 0
+        }));
+      } catch (error) {
+        console.error("Failed to fetch progress", error);
+        // Fallback to initial state (mock data mixed with user name)
+      }
+    };
+
+    if (storedUser) {
+      fetchProgress();
+    }
+  }, []);
 
   const CircularProgress = ({ percentage, size = 120 }) => {
     const radius = (size - 10) / 2;
@@ -52,7 +88,7 @@ const StudentDashboard = () => {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       <Sidebar />
-      
+
       <div className="flex-1 p-4 sm:p-6 lg:ml-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -63,7 +99,7 @@ const StudentDashboard = () => {
           <h1 className={`text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 ${text} px-2`}>
             Welcome back, {currentUser.name}! 👋
           </h1>
-          
+
           {/* Readiness Score and Progress Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Readiness Score */}
@@ -83,7 +119,7 @@ const StudentDashboard = () => {
             </motion.div>
 
             {/* Progress Cards */}
-            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
               <StatCard
                 title="DSA Progress"
                 value={`${currentUser.dsaProgress}%`}
@@ -104,6 +140,13 @@ const StudentDashboard = () => {
                 icon="📚"
                 color="purple"
                 progress={currentUser.coreSubjectsProgress}
+              />
+              <StatCard
+                title="Projects"
+                value={`${currentUser.projectProgress}%`}
+                icon="💻"
+                color="pink"
+                progress={currentUser.projectProgress}
               />
             </div>
           </div>
@@ -152,7 +195,7 @@ const StudentDashboard = () => {
                     </div>
                   </div>
                 </button>
-                
+
                 <button className={`w-full p-3 sm:p-4 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-left`}>
                   <div className="flex items-center space-x-3">
                     <span className="text-xl sm:text-2xl">🎤</span>
@@ -162,7 +205,7 @@ const StudentDashboard = () => {
                     </div>
                   </div>
                 </button>
-                
+
                 <button className={`w-full p-3 sm:p-4 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-left`}>
                   <div className="flex items-center space-x-3">
                     <span className="text-xl sm:text-2xl">📚</span>

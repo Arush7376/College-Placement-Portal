@@ -23,3 +23,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             role=validated_data.get('role', User.Role.STUDENT)
         )
         return user
+
+from .models import StudentProgress
+
+class StudentProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentProgress
+        fields = ['dsa_progress', 'aptitude_progress', 'core_subjects_progress', 'project_progress', 'readiness_score']
