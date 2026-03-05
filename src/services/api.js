@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_URL = 'http://localhost:8000/api';
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: 'http://localhost:8000/api',
     timeout: 60000, // 60 seconds timeout
     headers: {
         'Content-Type': 'application/json',
@@ -71,7 +71,14 @@ export const aiAPI = {
     evaluateTest: (data) => api.post('/gemini/', {
         action: 'evaluate',
         ...data
-    })
+    }),
+    runCode: (data) => api.post('/run-code/', data)
+};
+
+export const interviewAPI = {
+    getQuestions: (data) => api.post('/interview-questions/', data),
+    evaluate: (data) => api.post('/evaluate-interview/', data),
+    getPastInterviews: () => api.get('/past-interviews/'),
 };
 
 export default api;

@@ -15,6 +15,7 @@ import StudentProgress from '../pages/StudentProgress';
 import QuestionManagement from '../pages/QuestionManagement';
 import TestResults from '../pages/TestResults';
 import InterviewResults from '../pages/InterviewResults';
+import MockInterviewList from '../pages/MockInterviewList';
 
 const AppRoutes = () => {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -23,11 +24,11 @@ const AppRoutes = () => {
     if (!user) {
       return <Navigate to="/login" replace />;
     }
-    
+
     if (adminOnly && user.role !== 'admin') {
       return <Navigate to="/dashboard" replace />;
     }
-    
+
     return children;
   };
 
@@ -37,125 +38,133 @@ const AppRoutes = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      
+
       {/* Student Routes */}
-      <Route 
-        path="/dashboard" 
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <StudentDashboard />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/test-setup" 
+      <Route
+        path="/test-setup"
         element={
           <ProtectedRoute>
             <AITestSetup />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/test" 
+      <Route
+        path="/test"
         element={
           <ProtectedRoute>
             <TestPage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/mock-interview-setup" 
+      <Route
+        path="/mock-interview-setup"
         element={
           <ProtectedRoute>
             <MockInterviewSetup />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/mock-interview" 
+      <Route
+        path="/mock-interview"
         element={
           <ProtectedRoute>
             <MockInterview />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/analytics" 
+      <Route
+        path="/analytics"
         element={
           <ProtectedRoute>
             <Analytics />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/study-plan" 
+      <Route
+        path="/study-plan"
         element={
           <ProtectedRoute>
             <StudyPlan />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/leaderboard" 
+      <Route
+        path="/leaderboard"
         element={
           <ProtectedRoute>
             <Leaderboard />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/test-results" 
+      <Route
+        path="/test-results"
         element={
           <ProtectedRoute>
             <TestResults />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/interview-results" 
+      <Route
+        path="/interview-results"
         element={
           <ProtectedRoute>
             <InterviewResults />
           </ProtectedRoute>
-        } 
+        }
       />
-      
+      <Route
+        path="/mock-interviews"
+        element={
+          <ProtectedRoute>
+            <MockInterviewList />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Admin Routes */}
-      <Route 
-        path="/admin-dashboard" 
+      <Route
+        path="/admin-dashboard"
         element={
           <ProtectedRoute adminOnly>
             <AdminDashboard />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/student-progress" 
+      <Route
+        path="/student-progress"
         element={
           <ProtectedRoute adminOnly>
             <StudentProgress />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/question-management" 
+      <Route
+        path="/question-management"
         element={
           <ProtectedRoute adminOnly>
             <QuestionManagement />
           </ProtectedRoute>
-        } 
+        }
       />
-      
+
       {/* Redirect based on user role */}
-      <Route 
-        path="/dashboard-redirect" 
+      <Route
+        path="/dashboard-redirect"
         element={
-          user?.role === 'admin' 
+          user?.role === 'admin'
             ? <Navigate to="/admin-dashboard" replace />
             : <Navigate to="/dashboard" replace />
-        } 
+        }
       />
-      
+
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -58,6 +58,9 @@ const TestPage = () => {
           }
 
           setQuestions(parsedQuestions);
+          if (parsedQuestions.length > 0 && config.type === 'Coding') {
+            setCode(parsedQuestions[0].boilerplate || '');
+          }
         }
       } catch (error) {
         console.error("Failed to generate questions", error);
@@ -104,25 +107,47 @@ const TestPage = () => {
     });
   };
 
-  const handleCodeChange = (e) => {
-    setCode(e.target.value);
-    setAnswers({
-      ...answers,
-      [currentQuestion]: e.target.value
-    });
+  const [isRunningCode, setIsRunningCode] = useState(false);
+  const [consoleOutput, setConsoleOutput] = useState(null);
+
+  const handleRunCode = async () => {
+    if (!code.trim()) return;
+    setIsRunningCode(true);
+    setConsoleOutput(null);
+    try {
+      const response = await aiAPI.runCode({
+        code: code,
+        problem_description: currentQ.description,
+        test_cases: currentQ.test_cases || []
+      });
+
+      // Add a small delay for "Realism" in simulation
+      setTimeout(() => {
+        setConsoleOutput(response.data);
+        setIsRunningCode(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Code execution failed", error);
+      setConsoleOutput({ status: 'error', output: 'Runtime Error: Failed to connect to execution environment.' });
+      setIsRunningCode(false);
+    }
   };
 
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
+      const nextCode = answers[currentQuestion + 1] || questions[currentQuestion + 1].boilerplate || '';
       setCurrentQuestion(currentQuestion + 1);
-      setCode(answers[currentQuestion + 1] || '');
+      setCode(nextCode);
+      setConsoleOutput(null);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
+      const prevCode = answers[currentQuestion - 1] || questions[currentQuestion - 1].boilerplate || '';
       setCurrentQuestion(currentQuestion - 1);
-      setCode(answers[currentQuestion - 1] || '');
+      setCode(prevCode);
+      setConsoleOutput(null);
     }
   };
 
@@ -195,7 +220,7 @@ const TestPage = () => {
     }
   };
 
-  if (loading || !testConfig || questions.length === 0) { // Added questions.length === 0 to loading condition
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
         <div className="text-center">
@@ -207,17 +232,13 @@ const TestPage = () => {
     );
   }
 
-
-
-  // ...
-
-  if (questions.length === 0) {
+  if (questions.length === 0 || errorDetails) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
         <div className="text-center max-w-lg p-6">
-          <p className="text-xl mb-4">Failed to load questions.</p>
+          <p className="text-xl mb-4">{errorDetails ? "Error Generating Questions" : "Failed to load questions."}</p>
           {errorDetails && (
-            <div className="bg-red-900/50 p-4 rounded text-sm font-mono text-left mb-4 overflow-auto max-h-40">
+            <div className="bg-red-900/50 p-4 rounded text-sm font-mono text-left mb-4 overflow-auto max-h-60 border border-red-500">
               {errorDetails}
             </div>
           )}
@@ -293,15 +314,86 @@ const TestPage = () => {
                     )}
                   </div>
 
+                  <div className="flex space-x-4 mb-4">
+                    <Button
+                      onClick={handleRunCode}
+                      disabled={isRunningCode || !code.trim()}
+                      variant="secondary"
+                      className="flex-1"
+                    >
+                      {isRunningCode ? 'Running...' : '▶ Run Code'}
+                    </Button>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium mb-2">Your Solution:</label>
                     <textarea
                       value={code}
-                      onChange={handleCodeChange}
+                      onChange={(e) => {
+                        setCode(e.target.value);
+                        setAnswers({ ...answers, [currentQuestion]: e.target.value });
+                      }}
                       className="w-full h-64 p-4 bg-gray-800 border border-gray-600 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                       placeholder="Write your code here..."
                     />
                   </div>
+
+                  {consoleOutput && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 font-mono text-sm overflow-hidden rounded-lg border border-gray-700 bg-[#1e1e1e] shadow-2xl"
+                    >
+                      {/* Terminal Header */}
+                      <div className="bg-[#2d2d2d] px-4 py-2 flex justify-between items-center border-b border-gray-700">
+                        <div className="flex space-x-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                          <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-xs text-gray-400 px-2 py-0.5 bg-black/30 rounded">
+                            {consoleOutput.detected_language || 'Detected'}
+                          </span>
+                          <span className={consoleOutput.status === 'success' ? 'text-green-500' : 'text-red-500'}>
+                            {consoleOutput.status === 'success' ? '✔ Success' : '✖ Error'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-[#1e1e1e]">
+                        <p className="text-gray-500 mb-2 font-bold opacity-50">Output:</p>
+                        <pre className={`whitespace-pre-wrap ${consoleOutput.status === 'error' ? 'text-red-400' : 'text-blue-300'}`}>
+                          {consoleOutput.output}
+                        </pre>
+
+                        {consoleOutput.results && (
+                          <div className="mt-6 pt-4 border-t border-gray-800">
+                            <p className="text-gray-500 mb-3 font-bold opacity-50">Test Verification:</p>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                              {consoleOutput.results.map((res, i) => (
+                                <div
+                                  key={i}
+                                  className={`p-3 rounded-md flex flex-col items-center justify-center border ${res.passed
+                                    ? 'bg-green-500/5 border-green-500/20 text-green-400'
+                                    : 'bg-red-500/5 border-red-500/20 text-red-400'
+                                    }`}
+                                >
+                                  <span className="text-[10px] uppercase tracking-wider mb-1 opacity-60">Case {i + 1}</span>
+                                  <span className="font-bold text-xs">{res.passed ? 'PASSED' : 'FAILED'}</span>
+                                  {res.actual_output && (
+                                    <span className="text-[10px] mt-1 opacity-50 truncate w-full text-center">
+                                      {res.actual_output}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -312,23 +404,67 @@ const TestPage = () => {
                   <p className="text-lg mb-6">{currentQ.question}</p>
 
                   <div className="space-y-3">
-                    {currentQ.options.map((option, index) => (
-                      <motion.button
-                        key={index}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => handleAnswerSelect(index)}
-                        className={`w-full p-4 text-left rounded-lg border-2 transition-all ${answers[currentQuestion] === index
-                          ? 'border-primary-500 bg-primary-500/20'
-                          : 'border-gray-600 hover:border-primary-500/50'
-                          }`}
-                      >
-                        <span className="font-medium mr-3">
-                          {String.fromCharCode(65 + index)}.
-                        </span>
-                        {option}
-                      </motion.button>
-                    ))}
+                    {currentQ.options.map((option, index) => {
+                      const isSelected = answers[currentQuestion] === index;
+                      const isCorrect = currentQ.correct_answer === index;
+                      const hasAnswered = answers[currentQuestion] !== undefined;
+
+                      let variantClass = 'border-gray-600 hover:border-primary-500/50';
+                      if (hasAnswered) {
+                        if (isCorrect) {
+                          variantClass = 'border-green-500 bg-green-500/20 text-green-400';
+                        } else if (isSelected) {
+                          variantClass = 'border-red-500 bg-red-500/20 text-red-400';
+                        } else {
+                          variantClass = 'border-gray-700 opacity-50';
+                        }
+                      } else if (isSelected) {
+                        variantClass = 'border-primary-500 bg-primary-500/20';
+                      }
+
+                      return (
+                        <motion.button
+                          key={index}
+                          whileHover={!hasAnswered ? { scale: 1.02 } : {}}
+                          onClick={() => !hasAnswered && handleAnswerSelect(index)}
+                          disabled={hasAnswered}
+                          className={`w-full p-4 text-left rounded-lg border-2 transition-all cursor-pointer ${variantClass}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-medium mr-3">
+                                {String.fromCharCode(65 + index)}.
+                              </span>
+                              {option}
+                            </div>
+                            {hasAnswered && isCorrect && (
+                              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                            {hasAnswered && isSelected && !isCorrect && (
+                              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            )}
+                          </div>
+                        </motion.button>
+                      );
+                    })}
                   </div>
+
+                  {answers[currentQuestion] !== undefined && currentQ.explanation && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg"
+                    >
+                      <h4 className="text-blue-400 font-semibold mb-2">Explanation:</h4>
+                      <p className="text-gray-300 text-sm leading-relaxed">
+                        {currentQ.explanation}
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
               )}
             </motion.div>
@@ -343,8 +479,10 @@ const TestPage = () => {
                   <button
                     key={index}
                     onClick={() => {
+                      const navCode = answers[index] || questions[index].boilerplate || '';
                       setCurrentQuestion(index);
-                      setCode(answers[index] || '');
+                      setCode(navCode);
+                      setConsoleOutput(null);
                     }}
                     className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${index === currentQuestion
                       ? 'bg-primary-500 text-white'

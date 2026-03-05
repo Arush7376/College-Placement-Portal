@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import Sidebar from '../components/Sidebar';
@@ -7,6 +8,7 @@ import mockStudents from '../data/mockStudents.json';
 import { authAPI } from '../services/api';
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
   // Get user from local storage or fallback to mock
   const storedUser = JSON.parse(localStorage.getItem('user'));
   const [currentUser, setCurrentUser] = useState({
@@ -162,18 +164,22 @@ const StudentDashboard = () => {
             >
               <h3 className="text-lg sm:text-xl font-semibold mb-4">Recent Test Results</h3>
               <div className="space-y-3 sm:space-y-4">
-                {currentUser.recentTests.map((test, index) => (
-                  <div key={index} className={`flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 ${isDark ? 'bg-white/5' : 'bg-gray-50'} rounded-lg gap-2 sm:gap-0`}>
-                    <div>
-                      <p className="font-medium text-sm sm:text-base">{test.subject}</p>
-                      <p className={`text-xs sm:text-sm ${textSecondary}`}>{test.date}</p>
+                {currentUser.recentTests.length > 0 ? (
+                  currentUser.recentTests.map((test, index) => (
+                    <div key={index} className={`flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 ${isDark ? 'bg-white/5' : 'bg-gray-50'} rounded-lg gap-2 sm:gap-0`}>
+                      <div>
+                        <p className="font-medium text-sm sm:text-base">{test.subject}</p>
+                        <p className={`text-xs sm:text-sm ${textSecondary}`}>{test.date}</p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-base sm:text-lg font-bold text-blue-500">{test.score}%</p>
+                        <p className={`text-xs ${textSecondary}`}>Score</p>
+                      </div>
                     </div>
-                    <div className="text-left sm:text-right">
-                      <p className="text-base sm:text-lg font-bold text-blue-500">{test.score}%</p>
-                      <p className={`text-xs ${textSecondary}`}>Score</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className={`text-center py-4 ${textSecondary}`}>No tests taken yet. Start practicing!</p>
+                )}
               </div>
             </motion.div>
 
@@ -186,7 +192,10 @@ const StudentDashboard = () => {
             >
               <h3 className="text-lg sm:text-xl font-semibold mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className={`w-full p-3 sm:p-4 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-left`}>
+                <button
+                  onClick={() => navigate('/test-setup')}
+                  className={`w-full p-3 sm:p-4 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-left`}
+                >
                   <div className="flex items-center space-x-3">
                     <span className="text-xl sm:text-2xl">🧠</span>
                     <div>
@@ -196,7 +205,10 @@ const StudentDashboard = () => {
                   </div>
                 </button>
 
-                <button className={`w-full p-3 sm:p-4 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-left`}>
+                <button
+                  onClick={() => navigate('/mock-interview-setup')}
+                  className={`w-full p-3 sm:p-4 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-left`}
+                >
                   <div className="flex items-center space-x-3">
                     <span className="text-xl sm:text-2xl">🎤</span>
                     <div>
@@ -206,7 +218,10 @@ const StudentDashboard = () => {
                   </div>
                 </button>
 
-                <button className={`w-full p-3 sm:p-4 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-left`}>
+                <button
+                  onClick={() => navigate('/study-plan')}
+                  className={`w-full p-3 sm:p-4 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-left`}
+                >
                   <div className="flex items-center space-x-3">
                     <span className="text-xl sm:text-2xl">📚</span>
                     <div>

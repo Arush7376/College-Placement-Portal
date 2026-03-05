@@ -30,6 +30,7 @@ const Sidebar = ({ userRole = 'student' }) => {
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/test-setup', label: 'Take AI Test', icon: '🧠' },
     { path: '/mock-interview-setup', label: 'Mock Interview', icon: '🎤' },
+    { path: '/mock-interviews', label: 'Interview History', icon: '📝' },
     { path: '/analytics', label: 'Analytics', icon: '📈' },
     { path: '/study-plan', label: 'Study Plan', icon: '📚' },
     { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' }
@@ -55,7 +56,7 @@ const Sidebar = ({ userRole = 'student' }) => {
       </button>
 
       {/* Sidebar */}
-      <motion.div 
+      <motion.div
         // animate off-canvas only on small screens; always visible on large screens
         initial={isLargeScreen ? { x: 0 } : (isCollapsed ? { x: -300 } : { x: 0 })}
         animate={isLargeScreen ? { x: 0 } : (isCollapsed ? { x: -300 } : { x: 0 })}
@@ -72,11 +73,10 @@ const Sidebar = ({ userRole = 'student' }) => {
             <Link
               key={link.path}
               to={link.path}
-              className={`flex items-center space-x-3 p-3 rounded-lg transition-all ${hover} ${
-                location.pathname === link.path 
-                  ? 'bg-blue-600 ai-glow text-white' 
+              className={`flex items-center space-x-3 p-3 rounded-lg transition-all ${hover} ${location.pathname === link.path
+                  ? 'bg-blue-600 ai-glow text-white'
                   : ''
-              }`}
+                }`}
               onClick={() => setIsCollapsed(true)}
             >
               <span className="text-xl flex-shrink-0">{link.icon}</span>

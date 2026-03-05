@@ -13,14 +13,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'role']
+        fields = ['username', 'password', 'email', 'role', 'name']
+    extra_kwargs = {'name': {'required': False}}
+
+    # Temporary field for name since it's not in AbstractUser directly
+    name = serializers.CharField(required=False, write_only=True)
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password'],
-            role=validated_data.get('role', User.Role.STUDENT)
+            role=validated_data.get('role', User.Role.STUDENT),
+            first_name=validated_data.get('name', '')
         )
         return user
 

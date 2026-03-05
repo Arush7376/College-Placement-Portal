@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-tj2l^$$wa_6sd(7mva4r-l*6v6!m_dlb7siy0q@$!znml_1=jw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -130,9 +130,17 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ALLOWED_ORIGINS = [
+ALLOWED_HOSTS = ['*']
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
 ]
 
-GEMINI_API_KEY = "AIzaSyCgulhVs9T3NWIvvfSxEalnhNrLFKVXLJg"
+OPENROUTER_API_KEY = "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"
+GEMINI_API_KEY = OPENROUTER_API_KEY # Alias for backward compatibility
 

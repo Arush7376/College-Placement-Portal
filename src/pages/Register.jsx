@@ -33,7 +33,8 @@ const Register = () => {
         username: formData.email, // Mapping email to username
         email: formData.email,
         password: formData.password,
-        role: formData.role
+        role: formData.role,
+        name: formData.name
       };
 
       await authAPI.register(userData);

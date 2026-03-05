@@ -18,5 +18,17 @@ class Job(models.Model):
     deadline = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
+class MockInterviewResult(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    job_role = models.CharField(max_length=255)
+    interview_type = models.CharField(max_length=100)
+    score = models.IntegerField()
+    summary = models.TextField()
+    feedback = models.JSONField() # Key points
+    strengths = models.JSONField()
+    improvements = models.JSONField()
+    answers = models.JSONField() # Full question/answer log
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"{self.title} at {self.company_name}"
+        return f"{self.user.username} - {self.job_role} ({self.score}%)"
