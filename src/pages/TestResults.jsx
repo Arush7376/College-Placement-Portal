@@ -47,10 +47,10 @@ const TestResults = () => {
           <div className="text-6xl mb-6">
             {results.score >= 80 ? '🎉' : results.score >= 60 ? '👍' : '💪'}
           </div>
-          
+
           <h1 className="text-4xl font-bold mb-4">Test Completed!</h1>
           <p className="text-xl text-gray-400 mb-8">{getPerformanceMessage(results.score)}</p>
-          
+
           {/* Score Display */}
           <div className="glass-card p-6 rounded-xl mb-8">
             <h2 className="text-2xl font-bold mb-4">Your Score</h2>
@@ -76,24 +76,47 @@ const TestResults = () => {
           {/* Performance Breakdown */}
           <div className="glass-card p-6 rounded-xl mb-8">
             <h3 className="text-xl font-bold mb-4">Performance Analysis</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold mb-2 text-green-500">Strengths</h4>
-                <ul className="text-left space-y-1 text-gray-300">
-                  <li>• Good understanding of basic concepts</li>
-                  <li>• Consistent performance across topics</li>
-                  <li>• Efficient time management</li>
-                </ul>
+
+            {results.feedback && (
+              <div className="mb-6 p-4 bg-gray-800 rounded-lg text-left">
+                <h4 className="font-semibold mb-2 text-blue-400">AI Feedback</h4>
+                <p className="text-gray-300">{results.feedback}</p>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2 text-red-500">Areas to Improve</h4>
-                <ul className="text-left space-y-1 text-gray-300">
-                  <li>• Complex problem solving</li>
-                  <li>• Advanced algorithms</li>
-                  <li>• Edge case handling</li>
-                </ul>
+            )}
+
+            {results.analysis && Array.isArray(results.analysis) && results.analysis.length > 0 ? (
+              <div className="space-y-4 text-left">
+                <h4 className="font-semibold mb-2">Detailed Breakdown</h4>
+                {results.analysis.map((item, index) => (
+                  <div key={index} className={`p-4 rounded-lg border ${item.status === 'Correct' ? 'border-green-500/50 bg-green-500/10' : 'border-red-500/50 bg-red-500/10'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-bold">Question {item.question_id || index + 1}</span>
+                      <span className={item.status === 'Correct' ? 'text-green-400' : 'text-red-400'}>{item.status}</span>
+                    </div>
+                    <p className="text-sm text-gray-300">{item.feedback}</p>
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-2 text-green-500">Strengths</h4>
+                  <ul className="text-left space-y-1 text-gray-300">
+                    <li>• Good understanding of basic concepts</li>
+                    <li>• Consistent performance across topics</li>
+                    <li>• Efficient time management</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2 text-red-500">Areas to Improve</h4>
+                  <ul className="text-left space-y-1 text-gray-300">
+                    <li>• Complex problem solving</li>
+                    <li>• Advanced algorithms</li>
+                    <li>• Edge case handling</li>
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

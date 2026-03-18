@@ -6,14 +6,14 @@ import { useState } from 'react';
 
 const Navbar = ({ user }) => {
   const navigate = useNavigate();
-  const { 
-    isDark, 
+  const {
+    isDark,
     toggleTheme,
     lightThemeVariant,
     changeLightThemeVariant,
-    cardBg, 
-    text, 
-    textSecondary, 
+    cardBg,
+    text,
+    textSecondary,
     gradientText,
     glow,
     hover3D
@@ -22,11 +22,14 @@ const Navbar = ({ user }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    window.dispatchEvent(new Event('userChanged'));
     navigate('/');
   };
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
@@ -34,7 +37,7 @@ const Navbar = ({ user }) => {
     >
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50" />
-      
+
       <div className="flex justify-between items-center relative z-10">
         <Link to="/" className="flex items-center space-x-2 group">
           <motion.div
@@ -44,14 +47,14 @@ const Navbar = ({ user }) => {
           >
             🤖
           </motion.div>
-          <GradientText 
-            variant="primary" 
+          <GradientText
+            variant="primary"
             className="text-xl sm:text-2xl font-bold group-hover:scale-105 transition-transform duration-300"
           >
             AI PlacementPrep
           </GradientText>
         </Link>
-        
+
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-4">
           {/* Light Theme Variant Selector */}
@@ -59,28 +62,25 @@ const Navbar = ({ user }) => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => changeLightThemeVariant('vibrant')}
-                className={`w-6 h-6 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 border-2 ${
-                  lightThemeVariant === 'vibrant' ? 'border-white' : 'border-transparent'
-                } transition-all`}
+                className={`w-6 h-6 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 border-2 ${lightThemeVariant === 'vibrant' ? 'border-white' : 'border-transparent'
+                  } transition-all`}
                 title="Vibrant Theme"
               />
               <button
                 onClick={() => changeLightThemeVariant('soft')}
-                className={`w-6 h-6 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 border-2 ${
-                  lightThemeVariant === 'soft' ? 'border-white' : 'border-transparent'
-                } transition-all`}
+                className={`w-6 h-6 rounded-full bg-gradient-to-r from-pink-300 to-blue-300 border-2 ${lightThemeVariant === 'soft' ? 'border-white' : 'border-transparent'
+                  } transition-all`}
                 title="Soft Theme"
               />
               <button
                 onClick={() => changeLightThemeVariant('pastel')}
-                className={`w-6 h-6 rounded-full bg-gradient-to-r from-yellow-200 to-pink-200 border-2 ${
-                  lightThemeVariant === 'pastel' ? 'border-white' : 'border-transparent'
-                } transition-all`}
+                className={`w-6 h-6 rounded-full bg-gradient-to-r from-yellow-200 to-pink-200 border-2 ${lightThemeVariant === 'pastel' ? 'border-white' : 'border-transparent'
+                  } transition-all`}
                 title="Pastel Theme"
               />
             </div>
           )}
-          
+
           {/* Theme Toggle */}
           <motion.button
             whileHover={{ scale: 1.1, rotate: 180 }}
@@ -96,7 +96,7 @@ const Navbar = ({ user }) => {
               {isDark ? '☀️' : '🌙'}
             </motion.div>
           </motion.button>
-          
+
           {user ? (
             <div className="flex items-center space-x-4">
               <motion.div
@@ -105,11 +105,11 @@ const Navbar = ({ user }) => {
                 className={`${textSecondary} hidden sm:flex items-center space-x-2`}
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  {user.name.charAt(0)}
+                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
                 </div>
-                <span>Welcome, {user.name}</span>
+                <span>Welcome, {user.name || user.email?.split('@')[0]}</span>
               </motion.div>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -134,11 +134,10 @@ const Navbar = ({ user }) => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`border-2 px-6 py-2 rounded-xl transition-all duration-300 font-semibold backdrop-blur-sm ${
-                    isDark 
-                      ? 'border-blue-500 hover:bg-blue-500 text-blue-400 hover:text-white'
-                      : 'border-blue-700 hover:bg-blue-700 text-blue-700 hover:text-white bg-white/80'
-                  }`}
+                  className={`border-2 px-6 py-2 rounded-xl transition-all duration-300 font-semibold backdrop-blur-sm ${isDark
+                    ? 'border-blue-500 hover:bg-blue-500 text-blue-400 hover:text-white'
+                    : 'border-blue-700 hover:bg-blue-700 text-blue-700 hover:text-white bg-white/80'
+                    }`}
                 >
                   Register
                 </motion.button>
@@ -157,7 +156,7 @@ const Navbar = ({ user }) => {
           >
             {isDark ? '☀️' : '🌙'}
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -165,20 +164,20 @@ const Navbar = ({ user }) => {
             className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
           >
             <div className="w-6 h-6 flex flex-col justify-center items-center">
-              <motion.span 
+              <motion.span
                 className={`block w-5 h-0.5 ${isDark ? 'bg-white' : 'bg-gray-900'} transition-all`}
                 animate={{
                   rotate: isMobileMenuOpen ? 45 : 0,
                   y: isMobileMenuOpen ? 6 : 0
                 }}
               />
-              <motion.span 
+              <motion.span
                 className={`block w-5 h-0.5 ${isDark ? 'bg-white' : 'bg-gray-900'} mt-1 transition-all`}
                 animate={{
                   opacity: isMobileMenuOpen ? 0 : 1
                 }}
               />
-              <motion.span 
+              <motion.span
                 className={`block w-5 h-0.5 ${isDark ? 'bg-white' : 'bg-gray-900'} mt-1 transition-all`}
                 animate={{
                   rotate: isMobileMenuOpen ? -45 : 0,
@@ -193,9 +192,9 @@ const Navbar = ({ user }) => {
       {/* Mobile Menu */}
       <motion.div
         initial={{ opacity: 0, height: 0 }}
-        animate={{ 
-          opacity: isMobileMenuOpen ? 1 : 0, 
-          height: isMobileMenuOpen ? 'auto' : 0 
+        animate={{
+          opacity: isMobileMenuOpen ? 1 : 0,
+          height: isMobileMenuOpen ? 'auto' : 0
         }}
         transition={{ duration: 0.3 }}
         className="md:hidden overflow-hidden"
@@ -205,9 +204,9 @@ const Navbar = ({ user }) => {
             <>
               <div className={`${textSecondary} text-sm flex items-center space-x-2`}>
                 <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                  {user.name.charAt(0)}
+                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
                 </div>
-                <span>Welcome, {user.name}</span>
+                <span>Welcome, {user.name || user.email?.split('@')[0]}</span>
               </div>
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -233,11 +232,10 @@ const Navbar = ({ user }) => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`block w-full border-2 px-4 py-3 rounded-xl transition-all duration-300 text-center font-semibold backdrop-blur-sm ${
-                    isDark 
-                      ? 'border-blue-500 hover:bg-blue-500 text-blue-400 hover:text-white'
-                      : 'border-blue-700 hover:bg-blue-700 text-blue-700 hover:text-white bg-white/80'
-                  }`}
+                  className={`block w-full border-2 px-4 py-3 rounded-xl transition-all duration-300 text-center font-semibold backdrop-blur-sm ${isDark
+                    ? 'border-blue-500 hover:bg-blue-500 text-blue-400 hover:text-white'
+                    : 'border-blue-700 hover:bg-blue-700 text-blue-700 hover:text-white bg-white/80'
+                    }`}
                 >
                   Register
                 </motion.button>

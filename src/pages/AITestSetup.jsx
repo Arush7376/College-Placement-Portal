@@ -56,11 +56,10 @@ const AITestSetup = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setTestConfig({ ...testConfig, subject })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    testConfig.subject === subject
+                  className={`p-4 rounded-lg border-2 transition-all ${testConfig.subject === subject
                       ? 'border-primary-500 bg-primary-500/20'
                       : 'border-white/20 hover:border-primary-500/50'
-                  }`}
+                    }`}
                 >
                   {subject}
                 </motion.button>
@@ -80,11 +79,10 @@ const AITestSetup = () => {
                   key={topic}
                   whileHover={{ scale: 1.05 }}
                   onClick={() => setTestConfig({ ...testConfig, topic })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    testConfig.topic === topic
+                  className={`p-4 rounded-lg border-2 transition-all ${testConfig.topic === topic
                       ? 'border-primary-500 bg-primary-500/20'
                       : 'border-white/20 hover:border-primary-500/50'
-                  }`}
+                    }`}
                 >
                   {topic}
                 </motion.button>
@@ -94,29 +92,34 @@ const AITestSetup = () => {
         );
 
       case 3:
+        const isCodingAllowed = ['DSA', 'DBMS'].includes(testConfig.subject);
         return (
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Test Type</h2>
             <p className="text-gray-400 mb-8">How would you like to practice?</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {testTypes.map((type) => (
-                <motion.button
-                  key={type}
-                  whileHover={{ scale: 1.05 }}
-                  onClick={() => setTestConfig({ ...testConfig, type })}
-                  className={`p-6 rounded-lg border-2 transition-all ${
-                    testConfig.type === type
-                      ? 'border-primary-500 bg-primary-500/20'
-                      : 'border-white/20 hover:border-primary-500/50'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{type === 'MCQ' ? '📝' : '💻'}</div>
-                  <h3 className="text-lg font-semibold">{type}</h3>
-                  <p className="text-sm text-gray-400 mt-2">
-                    {type === 'MCQ' ? 'Multiple choice questions' : 'Coding problems'}
-                  </p>
-                </motion.button>
-              ))}
+              {testTypes.map((type) => {
+                const isDisabled = type === 'Coding' && !isCodingAllowed;
+                return (
+                  <motion.button
+                    key={type}
+                    whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                    onClick={() => !isDisabled && setTestConfig({ ...testConfig, type })}
+                    className={`p-6 rounded-lg border-2 transition-all ${testConfig.type === type
+                        ? 'border-primary-500 bg-primary-500/20'
+                        : isDisabled
+                          ? 'border-gray-800 bg-gray-900/50 opacity-50 cursor-not-allowed'
+                          : 'border-white/20 hover:border-primary-500/50'
+                      }`}
+                  >
+                    <div className="text-3xl mb-2">{type === 'MCQ' ? '📝' : '💻'}</div>
+                    <h3 className="text-lg font-semibold">{type}</h3>
+                    <p className="text-sm text-gray-400 mt-2">
+                      {type === 'MCQ' ? 'Multiple choice questions' : isCodingAllowed ? 'Coding problems' : 'Coding available for DSA/DBMS only'}
+                    </p>
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
         );
@@ -132,11 +135,10 @@ const AITestSetup = () => {
                   key={difficulty}
                   whileHover={{ scale: 1.05 }}
                   onClick={() => setTestConfig({ ...testConfig, difficulty })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    testConfig.difficulty === difficulty
+                  className={`p-4 rounded-lg border-2 transition-all ${testConfig.difficulty === difficulty
                       ? 'border-primary-500 bg-primary-500/20'
                       : 'border-white/20 hover:border-primary-500/50'
-                  }`}
+                    }`}
                 >
                   <div className="text-2xl mb-2">
                     {difficulty === 'Easy' ? '🟢' : difficulty === 'Medium' ? '🟡' : '🔴'}
@@ -159,17 +161,16 @@ const AITestSetup = () => {
                   key={num}
                   whileHover={{ scale: 1.05 }}
                   onClick={() => setTestConfig({ ...testConfig, questions: num })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    testConfig.questions === num
+                  className={`p-4 rounded-lg border-2 transition-all ${testConfig.questions === num
                       ? 'border-primary-500 bg-primary-500/20'
                       : 'border-white/20 hover:border-primary-500/50'
-                  }`}
+                    }`}
                 >
                   {num} Questions
                 </motion.button>
               ))}
             </div>
-            
+
             <div className="glass-card p-6 rounded-lg mb-8">
               <h3 className="text-lg font-semibold mb-4">Test Summary</h3>
               <div className="text-left space-y-2">
@@ -191,7 +192,7 @@ const AITestSetup = () => {
   return (
     <div className="flex">
       <Sidebar />
-      
+
       <div className="flex-1 p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -225,7 +226,7 @@ const AITestSetup = () => {
               >
                 Back
               </Button>
-              
+
               {step === 5 ? (
                 <Button
                   onClick={handleStartTest}

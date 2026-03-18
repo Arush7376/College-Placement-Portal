@@ -3,36 +3,85 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '../components/Button';
 import AIAvatar from '../components/AIAvatar';
-import mockQuestions from '../data/mockQuestions.json';
+import { interviewAPI } from '../services/api';
 
 const MockInterview = () => {
   const [interviewConfig, setInterviewConfig] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [answers, setAnswers] = useState([]);
   const [aiSpeaking, setAiSpeaking] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isFinishing, setIsFinishing] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const config = JSON.parse(localStorage.getItem('interviewConfig') || '{}');
-    setInterviewConfig(config);
-  }, []);
+    const fetchInterviewData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const config = JSON.parse(localStorage.getItem('interviewConfig') || '{}');
+        setInterviewConfig(config);
 
-  const getQuestions = () => {
-    if (!interviewConfig) return [];
-    return mockQuestions.interviewQuestions
-      .filter(q => q.type === interviewConfig.interviewType)
-      .slice(0, interviewConfig.questions);
-  };
+        if (config.jobRole && config.interviewType) {
+          const response = await interviewAPI.getQuestions({
+            job_role: config.jobRole,
+            interview_type: config.interviewType,
+            count: config.questions
+          });
 
-  const questions = getQuestions();
+          const data = response.data;
+
+          if (data && data.error) {
+            throw new Error(data.error);
+          }
+
+          if (!Array.isArray(data)) {
+            console.error('Invalid data format received:', data);
+            throw new Error('Invalid data format received from server');
+          }
+
+          setQuestions(data);
+        } else {
+          navigate('/mock-interview-setup');
+        }
+      } catch (err) {
+        console.error('Failed to fetch interview questions:', err);
+        setError(err.message || 'Failed to load interview questions. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInterviewData();
+  }, [navigate]);
+
   const currentQ = questions[currentQuestion];
+
+  const speak = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.onstart = () => setAiSpeaking(true);
+      utterance.onend = () => setAiSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn('Speech synthesis not supported');
+      simulateAISpeaking();
+    }
+  };
 
   const startInterview = () => {
     setInterviewStarted(true);
-    simulateAISpeaking();
+    if (questions.length > 0) {
+      speak(`Hello! Let's begin your ${interviewConfig.interviewType} interview for the ${interviewConfig.jobRole} position. Here is your first question: ${questions[0].question}`);
+    }
   };
 
   const simulateAISpeaking = () => {
@@ -43,21 +92,45 @@ const MockInterview = () => {
   };
 
   const startListening = () => {
-    setIsListening(true);
-    // Simulate voice recognition
-    setTimeout(() => {
-      const mockResponses = [
-        "I am a passionate developer with 3 years of experience in React and Node.js. I love solving complex problems and building user-friendly applications.",
-        "I use useState for local component state and useEffect for side effects like API calls. For global state, I prefer Redux or Context API.",
-        "I would start by understanding the requirements, break down the problem into smaller tasks, design the architecture, and then implement with proper testing.",
-        "My biggest strength is my ability to learn quickly and adapt to new technologies. I'm always eager to take on new challenges.",
-        "I handle stress by staying organized, prioritizing tasks, and taking breaks when needed. I also communicate with my team when I need support."
-      ];
-      
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      setTranscript(randomResponse);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech Recognition is not supported in this browser. Please use Chrome.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setTranscript('');
+    };
+
+    recognition.onresult = (event) => {
+      let currentTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        currentTranscript += event.results[i][0].transcript;
+      }
+      setTranscript(currentTranscript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
       setIsListening(false);
-    }, 3000);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+
+    // Stop after 30 seconds of inactivity or when user clicks stop
+    setTimeout(() => {
+      recognition.stop();
+    }, 30000);
   };
 
   const submitAnswer = () => {
@@ -67,43 +140,98 @@ const MockInterview = () => {
     }
 
     const newAnswer = {
+      question_id: currentQ.id,
       question: currentQ.question,
       answer: transcript,
-      timestamp: new Date().toISOString()
     };
 
-    setAnswers([...answers, newAnswer]);
+    const updatedAnswers = [...answers, newAnswer];
+    setAnswers(updatedAnswers);
     setTranscript('');
 
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      simulateAISpeaking();
+      const nextIndex = currentQuestion + 1;
+      setCurrentQuestion(nextIndex);
+      speak(questions[nextIndex].question);
     } else {
-      finishInterview();
+      finishInterview(updatedAnswers);
     }
   };
 
-  const finishInterview = () => {
-    const results = {
-      interviewConfig,
-      answers,
-      score: Math.floor(Math.random() * 30) + 70, // Mock score 70-100
-      feedback: [
-        "Great communication skills",
-        "Good technical knowledge",
-        "Could improve on specific examples"
-      ]
-    };
-    localStorage.setItem('interviewResults', JSON.stringify(results));
-    navigate('/interview-results');
+  const finishInterview = async (finalAnswers) => {
+    setIsFinishing(true);
+    try {
+      const response = await interviewAPI.evaluate({
+        job_role: interviewConfig.jobRole,
+        interview_type: interviewConfig.interviewType,
+        answers: finalAnswers || answers
+      });
+
+      // Merge evaluation with original data
+      const results = {
+        ...response.data,
+        answers: finalAnswers || answers,
+        questions: questions
+      };
+
+      localStorage.setItem('interviewResults', JSON.stringify(results));
+      navigate('/interview-results');
+    } catch (error) {
+      console.error('Failed to evaluate interview:', error);
+      alert('Verification failed. Storing answers locally.');
+      const fallbackResults = {
+        score: 0,
+        summary: "Evaluation failed due to server error.",
+        answers: finalAnswers || answers
+      };
+      localStorage.setItem('interviewResults', JSON.stringify(fallbackResults));
+      navigate('/interview-results');
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
-  if (!interviewConfig || questions.length === 0) {
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card p-8 rounded-2xl text-center max-w-2xl border-red-500/50"
+        >
+          <div className="text-6xl mb-6">⚠️</div>
+          <h1 className="text-3xl font-bold mb-4">Interview Setup Error</h1>
+          <p className="text-red-400 mb-8">{error}</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button onClick={() => window.location.reload()}>
+              🔄 Try Again
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/mock-interview-setup')}>
+              ⚙️ Change Settings
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (loading || !interviewConfig || questions.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p>Loading interview...</p>
+          <p>Generating questions with Gemini...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isFinishing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p>Gemini is evaluating your performance...</p>
         </div>
       </div>
     );
@@ -118,13 +246,13 @@ const MockInterview = () => {
           className="glass-card p-8 rounded-2xl text-center max-w-2xl"
         >
           <AIAvatar isActive={true} size="lg" />
-          
+
           <h1 className="text-3xl font-bold mt-6 mb-4">Ready to Start?</h1>
           <p className="text-gray-400 mb-6">
-            Your AI interviewer is ready to begin the {interviewConfig.interviewType} interview 
+            Your AI interviewer is ready to begin the {interviewConfig.interviewType} interview
             for {interviewConfig.jobRole} position.
           </p>
-          
+
           <div className="glass-card p-4 rounded-lg mb-6">
             <h3 className="font-semibold mb-2">Interview Details</h3>
             <div className="grid grid-cols-3 gap-4 text-sm">
@@ -142,7 +270,7 @@ const MockInterview = () => {
               </div>
             </div>
           </div>
-          
+
           <Button onClick={startInterview} size="lg">
             🎤 Start Interview
           </Button>
@@ -165,13 +293,13 @@ const MockInterview = () => {
               <h1 className="text-xl font-bold">{interviewConfig.jobRole} Interview</h1>
               <p className="text-gray-400">{interviewConfig.interviewType} • Question {currentQuestion + 1} of {questions.length}</p>
             </div>
-            
+
             <div className="text-center">
               <p className="text-sm text-gray-400">Progress</p>
               <p className="text-lg font-bold">{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</p>
             </div>
           </div>
-          
+
           <div className="mt-4 bg-gray-700 rounded-full h-2">
             <motion.div
               initial={{ width: 0 }}
@@ -224,7 +352,7 @@ const MockInterview = () => {
             className="glass-card p-6 rounded-xl"
           >
             <h3 className="text-xl font-bold mb-4">Your Response</h3>
-            
+
             {/* Microphone */}
             <div className="text-center mb-6">
               <motion.button
@@ -232,13 +360,12 @@ const MockInterview = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={startListening}
                 disabled={isListening || aiSpeaking}
-                className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all ${
-                  isListening 
-                    ? 'bg-red-500 animate-pulse' 
-                    : aiSpeaking 
+                className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all ${isListening
+                  ? 'bg-red-500 animate-pulse'
+                  : aiSpeaking
                     ? 'bg-gray-600 cursor-not-allowed'
                     : 'bg-primary-500 hover:bg-primary-600'
-                }`}
+                  }`}
               >
                 🎤
               </motion.button>
@@ -267,7 +394,7 @@ const MockInterview = () => {
               >
                 Submit Answer
               </Button>
-              
+
               {currentQuestion === questions.length - 1 && (
                 <Button
                   onClick={finishInterview}

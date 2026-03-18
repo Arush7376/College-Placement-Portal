@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '../components/Button';
+import { authAPI } from '../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,32 +10,46 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student'
+    role: 'STUDENT'
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    
-    // Mock registration
-    const user = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      role: formData.role
-    };
-    
-    localStorage.setItem('user', JSON.stringify(user));
-    
-    if (formData.role === 'admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/dashboard');
+
+    setLoading(true);
+
+    try {
+      // Use email as username for registration
+      const userData = {
+        username: formData.email, // Mapping email to username
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        name: formData.name
+      };
+
+      await authAPI.register(userData);
+
+      // Auto login after registration or redirect to login
+      alert('Registration successful! Please login.');
+      navigate('/login');
+
+    } catch (err) {
+      console.error("Registration failed", err);
+      // Construct a better error message if possible
+      const msg = err.response?.data?.username ? 'User likely already exists.' : 'Registration failed. Please try again.';
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,6 +72,12 @@ const Register = () => {
           <h1 className="text-3xl font-bold mb-2">Create Account</h1>
           <p className="text-gray-400">Join AI PlacementPrep today</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 text-red-200 rounded-lg text-sm text-center border border-red-500/50">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -119,13 +140,13 @@ const Register = () => {
               onChange={handleChange}
               className="w-full p-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="student">Student</option>
-              <option value="admin">Placement Head</option>
+              <option value="STUDENT">Student</option>
+              <option value="ADMIN">Placement Head</option>
             </select>
           </div>
 
-          <Button type="submit" className="w-full">
-            Create Account
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
 
